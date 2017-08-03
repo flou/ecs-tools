@@ -11,7 +11,7 @@ Then it determines if the service is healthy or not:
 
 Usage:
 
-    # List unhealthy services in all ECS clusters)
+    # List unhealthy services in all ECS clusters
     $ ecs_monitor.py
 
     # List unhealthy services in ECS clusters that contains 'dev' in their name
