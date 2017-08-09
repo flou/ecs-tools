@@ -61,9 +61,9 @@ $ ecs monitor --filter dev
 
 ```
 
-## Update service
+## Scale service
 
-The `update_service` command allows you to quickly update the `desiredCount` of
+The `scale-service` command allows you to quickly scale the `desiredCount` of
 a service in your ECS cluster.
 
 It takes three parameters: the name of the cluster (or its ARN), the name of the
@@ -72,9 +72,9 @@ service and the new desired count of tasks for this service.
 ### Usage
 
 ```sh
-Usage: ecs update_service [OPTIONS] COUNT
+Usage: ecs scale-service [OPTIONS] COUNT
 
-  Update the DesiredCount of a service in ECS.
+  Scale the service to a specific desiredCount.
 
 Options:
   --cluster TEXT  Name of the ECS cluster  [required]
@@ -83,7 +83,7 @@ Options:
 ```
 
 ```sh
-$ ecs update_service --cluster ecs-mycluster-dev --service tools-deployment-dev-1 4
+$ ecs scale-service --cluster ecs-mycluster-dev --service tools-deployment-dev-1 4
 Updating tools-deployment-dev-1 / desiredCount[1 -> 4] running_count=1
 
 Service tools-deployment-dev-1 successfully updated with desired_count=4

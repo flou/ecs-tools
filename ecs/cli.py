@@ -5,27 +5,27 @@ Command line tool to interact with AWS ECS.
 """
 
 import click
-import ecs
+from . import ecs
 
 
-@click.command()
+@click.command('scale-service')
 @click.option('--cluster', help='Name of the ECS cluster', required=True)
 @click.option('--service', help='Name of the service', required=True)
 @click.argument('count', type=click.IntRange(0, None))
-def update_service(cluster, service, count):
+def scale_service(cluster, service, count):
     """
-    Update the DesiredCount of a service in ECS.
+    Scale the service to a specific desiredCount.
     """
     ecs.update_service(cluster, service, count)
 
 
 @click.command()
-@click.option('--filter', '-f', help='Filter by the name of the ECS cluster')
-def monitor(filter):
+@click.option('cluster_filter', '--filter', '-f', help='Filter by the name of the ECS cluster')
+def monitor(cluster_filter):
     """
     List unhealthy services in your ECS clusters.
     """
-    clusters = ecs.list_clusters(filter)
+    clusters = ecs.list_clusters(cluster_filter)
 
     for cluster in clusters:
         deployed_services = ecs.services_in_cluster(cluster)
@@ -50,7 +50,7 @@ def monitor(filter):
 def main():
     pass
 
-main.add_command(update_service)
+main.add_command(scale_service)
 main.add_command(monitor)
 
 if __name__ == '__main__':
