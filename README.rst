@@ -1,6 +1,47 @@
 ECS tools
 =========
 
+Usage
+~~~~~
+
+::
+
+    Usage: ecs [OPTIONS] COMMAND [ARGS]...
+
+    Options:
+      -v, --version  Show the version and exit.
+      -h, --help     Show this message and exit.
+
+    Commands:
+      image          Return the image for a service.
+      monitor        List unhealthy services in your ECS clusters.
+      scale-service  Scale the service to a specific desiredCount.
+
+
+Image
+-----
+
+Returns the image(s) that are defined in the currently running TaskDefinition.
+
+Usage
+~~~~~
+
+::
+
+    Usage: ecs image [OPTIONS]
+
+      Return the image for a service.
+
+    Options:
+      --cluster TEXT  Name of the ECS cluster  [required]
+      --service TEXT  Name of the service  [required]
+      --help          Show this message and exit.
+
+::
+
+    $ ecs image --cluster ecs-mycluster-dev --service tools-deployment-dev-1
+    123456789012.dkr.ecr.us-east-1.amazonaws.com/acme/srv-tools-deployment:1.0.3
+
 Monitor
 ----------
 
@@ -20,7 +61,7 @@ Then it determines if the service is healthy or not:
 
 
 Usage
------
+~~~~~
 
 ::
 
@@ -29,8 +70,11 @@ Usage
       List unhealthy services in your ECS clusters.
 
     Options:
-      -f, --filter TEXT  Filter by the name of the ECS cluster
-      --help             Show this message and exit.
+      -f, --filter TEXT     Filter by the name of the ECS cluster
+      -t, --threshold TEXT  Filter by the status of the service
+      -l, --long            Enable detailed output of containers parameters
+      -a, --all             Display status for all services in the cluster
+      --help                Show this message and exit.
 
 
 List unhealthy services in all ECS clusters::
@@ -69,7 +113,8 @@ a service in your ECS cluster.
 It takes three parameters: the name of the cluster (or its ARN), the name of the
 service and the new desired count of tasks for this service.
 
-### Usage
+Usage
+~~~~~
 
 ::
 
