@@ -19,11 +19,13 @@ Usage:
 """
 
 from __future__ import print_function
+import os
 import sys
 
 import boto3
 import click
 import crayons
+import yaml
 
 ECS_CLIENT = boto3.client('ecs')
 AWS_PAGE_SIZE = 10
@@ -37,16 +39,52 @@ class EcsService(object):
     def __init__(self, **kwargs):
         self.service_name = kwargs['serviceName']
         self.events = kwargs['events']
-        self.status = kwargs['status']
+        self.active = kwargs['status'].upper() == 'ACTIVE'
         self.desired_count = kwargs['desiredCount']
         self.running_count = kwargs['runningCount']
         self.task_definition = kwargs['taskDefinition'].split('/')[-1]
+        self.cluster = kwargs['cluster'].partition(':cluster/')[-1]
+        self.status = 'KO'
+        if self.is_up() and self.running_count == 0:
+            self.status = 'WARN'
+        if self.is_up() and self.running_count > 0:
+            self.status = 'OK'
+        self.taskdef = ECS_CLIENT.describe_task_definition(taskDefinition=self.task_definition)['taskDefinition']
 
-    def active(self):
+    def containers(self):
+        containers = self.taskdef['containerDefinitions']
+        out = ''
+        for cont in containers:
+            out += 'Name:         {}\n'.format(crayons.yellow(cont['name']))
+            out += 'Docker image: {}\n'.format(crayons.yellow(cont['image']))
+            out += 'Memory:       {}\n'.format(crayons.yellow(cont['memory']))
+            out += 'CPU:          {}\n'.format(crayons.yellow(cont['cpu']))
+            out += yaml.safe_dump(
+                {'Environment': self._service_environment(cont)},
+                default_flow_style=False)
+        return out
+
+    def service_images(self):
+        return '\n'.join(c['image'] for c in self.taskdef['containerDefinitions'])
+
+    def _service_environment(self, container):
+        result = {}
+        for env in container['environment']:
+            for k, val in env.items():
+                if k == 'name':
+                    key = val
+                if k == 'value':
+                    value = val
+            result[key] = value
+        return result
+
+    def link_to_ecs_console(self):
         """
-        Check that `service` is active in ECS.
+        Return a link to the service on the ECS console.
         """
-        return self.status.upper() == 'ACTIVE'
+        region = os.environ.get('AWS_DEFAULT_REGION', 'eu-west-1')
+        url = 'https://{0}.console.aws.amazon.com/ecs/home?{0}#/clusters/{1}/services/{2}/events'
+        return url.format(region, self.cluster, self.service_name)
 
     def is_up(self):
         """
@@ -84,10 +122,11 @@ class EcsService(object):
         """
         Return the line detailing the status of the service.
         """
-        return '{status:27s} {service:70s} desired {desired} / running {running} ({task_definition})'.format(
+        status_line = '{status:27s} {service:70s} running {running}/{desired} ({taskdef})'
+        return status_line.format(
             status=self.status_to_text(), service=crayons.yellow(self.service_name),
             desired=self.desired_count, running=self.running_count,
-            task_definition=self.task_definition)
+            taskdef=self.task_definition)
 
 
 def chunk(iterable, size=AWS_PAGE_SIZE):
@@ -144,7 +183,7 @@ def services_in_cluster(cluster):
     params = {'cluster': cluster}
     deployed_services = _paginate_call(ECS_CLIENT, 'list_services', 'serviceArns', params)
     return [
-        EcsService(**service)
+        EcsService(cluster=cluster, **service)
         for services in chunk(deployed_services)
         for service in ECS_CLIENT.describe_services(cluster=cluster, services=services)['services']
     ]
@@ -159,7 +198,7 @@ def find_service(cluster, service_name):
     """
     try:
         srv = ECS_CLIENT.describe_services(cluster=cluster, services=[service_name])['services'][0]
-        return EcsService(**srv)
+        return EcsService(cluster=cluster, **srv)
     except IndexError:
         click.echo(crayons.red('No service {0} is running on cluster {1}'.format(service_name, cluster)), err=True)
         sys.exit(1)
@@ -189,3 +228,11 @@ def update_service(cluster, service, desired_count):
     else:
         click.echo(crayons.red('Service {0} could not be updated. Please check the AWS console'.format(service)), err=True)
         sys.exit(1)
+
+
+def find_image(cluster, service):
+    """
+    Return the images for the ECS service.
+    """
+    running_service = find_service(cluster, service)
+    return running_service.service_images()
