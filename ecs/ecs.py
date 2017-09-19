@@ -53,16 +53,23 @@ class EcsService(object):
 
     def containers(self):
         containers = self.taskdef['containerDefinitions']
-        out = ''
+        lines = []
         for cont in containers:
-            out += 'Name:         {}\n'.format(crayons.yellow(cont['name']))
-            out += 'Docker image: {}\n'.format(crayons.yellow(cont['image']))
-            out += 'Memory:       {}\n'.format(crayons.yellow(cont['memory']))
-            out += 'CPU:          {}\n'.format(crayons.yellow(cont['cpu']))
-            out += yaml.safe_dump(
+            lines.append('Name:         {}'.format(crayons.yellow(cont['name'])))
+            lines.append('Docker image: {}'.format(crayons.yellow(cont['image'])))
+            lines.append('Memory:       {}'.format(crayons.yellow(cont['memory'])))
+            lines.append('CPU:          {}'.format(crayons.yellow(cont['cpu'])))
+            ports_map = cont.get('portMappings')
+            if ports_map:
+                ports = ' '.join([
+                    '->{}'.format(str(p['containerPort']))
+                    for p in ports_map
+                ])
+                lines.append('Ports:        {}'.format(crayons.yellow(ports)))
+            lines.append(yaml.safe_dump(
                 {'Environment': self._service_environment(cont)},
-                default_flow_style=False)
-        return out
+                default_flow_style=False))
+        return '\n'.join(lines)
 
     def service_images(self):
         return '\n'.join(c['image'] for c in self.taskdef['containerDefinitions'])
