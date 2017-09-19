@@ -1,6 +1,20 @@
 ECS tools
 =========
 
+.. image:: https://img.shields.io/pypi/v/ecs-tools.svg
+    :target: https://pypi.python.org/pypi/ecs-tools
+
+.. image:: https://img.shields.io/pypi/l/ecs-tools.svg
+    :target: https://pypi.python.org/pypi/ecs-tools
+
+.. image:: https://img.shields.io/pypi/wheel/ecs-tools.svg
+    :target: https://pypi.python.org/pypi/ecs-tools
+
+.. image:: https://img.shields.io/pypi/pyversions/ecs-tools.svg
+    :target: https://pypi.python.org/pypi/ecs-tools
+
+-------------------------------------
+
 Usage
 ~~~~~
 
