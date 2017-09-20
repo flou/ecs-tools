@@ -15,6 +15,13 @@ ECS tools
 
 -------------------------------------
 
+Installation
+------------
+
+::
+
+    pip install ecs-tools
+
 Usage
 ~~~~~
 
@@ -54,7 +61,7 @@ Usage
 ::
 
     $ ecs image --cluster ecs-mycluster-dev --service tools-deployment-dev-1
-    123456789012.dkr.ecr.us-east-1.amazonaws.com/acme/srv-tools-deployment:1.0.3
+    123456789012.dkr.ecr.us-east-1.amazonaws.com/acme/srv-deployment:1.0.3-dev
 
 Monitor
 ----------
@@ -95,28 +102,44 @@ List unhealthy services in all ECS clusters::
 
     $ ecs monitor
     ---- ECS-MYCLUSTER-DEV : 5 services
-    [OK]    tools-deployment-prod-1                      desired 1 / running 1
-    [KO]    tools-hound-prod-1                           desired 1 / running 0
-    [WARN]  tools-jenkins-prod-1                         desired 0 / running 0
-    [WARN]  tools-kibana-prod-1                          desired 0 / running 0
-    [KO]    tools-sonar-prod-1                           desired 2 / running 1
+    [KO]    tools-hound-dev-1                            running 0/1 (hound-dev:75)
+    [WARN]  tools-jenkins-dev-1                          running 0/0 (jenkins-dev:247)
+    [WARN]  tools-kibana-dev-1                           running 0/0 (srv-kibana:55)
+    [KO]    tools-sonar-dev-1                            running 2/1 (srv-sonar:923)
 
     ---- ECS-MYCLUSTER-PROD : 5 services
-    [OK]    tools-deployment-prod-1                      desired 1 / running 1
-    [OK]    tools-hound-prod-1                           desired 1 / running 1
-    [WARN]  tools-jenkins-prod-1                         desired 0 / running 0
-    [OK]    tools-kibana-prod-1                          desired 2 / running 2
-    [OK]    tools-version-prod-1                         desired 2 / running 2
+    [WARN]  tools-jenkins-prod-1                         running 0/0 (jenkins-prod:247)
 
-List unhealthy services in ECS clusters that contains 'dev' in their name::
 
-    $ ecs monitor --filter dev
+By default ``ecs monitor`` only shows services that are ``KO`` or ``WARN``, use
+the ``-a/--all`` option to list all services.
+
+List all services in ECS clusters that contains 'dev' in their name::
+
+    $ ecs monitor --all --filter dev
     ---- ECS-MYCLUSTER-DEV : 5 services
-    [OK]    tools-deployment-dev-1                       desired 1 / running 1
-    [KO]    tools-hound-dev-1                            desired 1 / running 0
-    [WARN]  tools-jenkins-dev-1                          desired 0 / running 0
-    [WARN]  tools-kibana-dev-1                           desired 0 / running 0
-    [KO]    tools-sonar-dev-1                            desired 2 / running 1
+    [OK]    tools-deployment-dev-1                       running 1/1 (srv-deployment-dev:3)
+    [KO]    tools-hound-dev-1                            running 0/1 (hound-dev:75)
+    [WARN]  tools-jenkins-dev-1                          running 0/0 (jenkins-dev:247)
+    [WARN]  tools-kibana-dev-1                           running 0/0 (srv-kibana:55)
+    [KO]    tools-sonar-dev-1                            running 2/1 (srv-sonar:923)
+
+You can also get more information by using the ``-l/--long`` option::
+
+    $ ecs monitor --long --filter prod
+    ---- ECS-MYCLUSTER-PROD : 5 services
+    [WARN]  tools-jenkins-prod-1                         running 0/0 (jenkins-prod:142)
+    Name:         jenkins
+    Docker image: 123456789012.dkr.ecr.us-east-1.amazonaws.com/acme/jenkins:2.77-custom
+    Memory:       1024
+    CPU:          512
+    Ports:        ->8080
+    Environment:
+        JAVA_OPTS: -Dhudson.footerURL=http://mycompany.com
+        JENKINS_OPTS: --prefix=/jenkins
+        JENKINS_SLAVE_AGENT_PORT: 50001
+        PLATFORM: prod
+        PROJECT: acme
 
 Scale service
 -------------
