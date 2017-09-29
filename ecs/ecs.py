@@ -27,8 +27,11 @@ import click
 import crayons
 import yaml
 
-ECS_CLIENT = boto3.client('ecs')
 AWS_PAGE_SIZE = 10
+
+
+def ecs_client():
+    return boto3.client('ecs')
 
 
 class EcsService(object):
@@ -49,7 +52,7 @@ class EcsService(object):
             self.status = 'WARN'
         if self.is_up() and self.running_count > 0:
             self.status = 'OK'
-        self.taskdef = ECS_CLIENT.describe_task_definition(taskDefinition=self.task_definition)['taskDefinition']
+        self.taskdef = ecs_client().describe_task_definition(taskDefinition=self.task_definition)['taskDefinition']
 
     def containers(self):
         containers = self.taskdef['containerDefinitions']
@@ -173,7 +176,7 @@ def list_clusters(_filter=None):
 
     :param _filter: filters on any part of the name of the cluster
     """
-    ecs_clusters = _paginate_call(ECS_CLIENT, 'list_clusters', 'clusterArns')
+    ecs_clusters = _paginate_call(ecs_client(), 'list_clusters', 'clusterArns')
     if _filter:
         ecs_clusters = [cluster
                         for cluster in ecs_clusters
@@ -188,11 +191,11 @@ def services_in_cluster(cluster):
     :param cluster: the cluster name or the cluster ARN
     """
     params = {'cluster': cluster}
-    deployed_services = _paginate_call(ECS_CLIENT, 'list_services', 'serviceArns', params)
+    deployed_services = _paginate_call(ecs_client(), 'list_services', 'serviceArns', params)
     return [
         EcsService(cluster=cluster, **service)
         for services in chunk(deployed_services)
-        for service in ECS_CLIENT.describe_services(cluster=cluster, services=services)['services']
+        for service in ecs_client().describe_services(cluster=cluster, services=services)['services']
     ]
 
 
@@ -204,12 +207,12 @@ def find_service(cluster, service_name):
     returns the EcsService or None if the service does not exist / or the cluster does not exist
     """
     try:
-        srv = ECS_CLIENT.describe_services(cluster=cluster, services=[service_name])['services'][0]
+        srv = ecs_client().describe_services(cluster=cluster, services=[service_name])['services'][0]
         return EcsService(cluster=cluster, **srv)
     except IndexError:
         click.echo(crayons.red('No service {0} is running on cluster {1}'.format(service_name, cluster)), err=True)
         sys.exit(1)
-    except ECS_CLIENT.exceptions.ClusterNotFoundException:
+    except ecs_client().exceptions.ClusterNotFoundException:
         click.echo(crayons.red('Cluster {0} does not exist'.format(cluster)), err=True)
         sys.exit(1)
 
@@ -224,7 +227,7 @@ def update_service(cluster, service, desired_count):
         sys.exit(0)
 
     click.echo(crayons.yellow('Updating {0} / desiredCount[{1} -> {2}] running_count={3}'.format(service, desired_count, running_service.desired_count, running_service.running_count)))
-    response = ECS_CLIENT.update_service(
+    response = ecs_client().update_service(
         cluster=cluster,
         service=service,
         desiredCount=desired_count

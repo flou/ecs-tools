@@ -5,11 +5,11 @@ Command line tool to interact with AWS ECS.
 """
 
 import click
-from . import ecs, version
+from . import ecs, VERSION
 
 
 @click.group()
-@click.version_option(version, '-v', '--version')
+@click.version_option(VERSION, '-v', '--version')
 @click.help_option('-h', '--help')
 def cli():
     pass
