@@ -1,5 +1,5 @@
 """
-List unhealthy services in your ECS clusters
+List unhealthy services in your ECS clusters.
 
 The script will list the clusters and fetch details about services that are
 running in it.

@@ -28,7 +28,8 @@ AUTHORS = {
 REQUIRED = [
     'boto3>=1.4.5',
     'click>=6.7',
-    'crayons>=0.1.2'
+    'crayons>=0.1.2',
+    'pyyaml>=3.12',
 ]
 
 # The rest you shouldn't have to touch too much :)
@@ -36,12 +37,12 @@ REQUIRED = [
 # Except, perhaps the License and Trove Classifiers!
 # If you do change the License, remember to change the Trove Classifier for that!
 
-here = os.path.abspath(os.path.dirname(__file__))
+HERE = os.path.abspath(os.path.dirname(__file__))
 
 # Import the README and use it as the long-description.
 # Note: this will only work if 'README.rst' is present in your MANIFEST.in file!
-with io.open(os.path.join(here, 'README.rst'), encoding='utf-8') as f:
-    long_description = '\n' + f.read()
+with io.open(os.path.join(HERE, 'README.rst'), encoding='utf-8') as f:
+    LONG_DESCRIPTION = '\n' + f.read()
 
 
 def _download_url():
@@ -70,7 +71,7 @@ class PublishCommand(Command):
     def run(self):
         try:
             self.status('Removing previous builds…')
-            rmtree(os.path.join(here, 'dist'))
+            rmtree(os.path.join(HERE, 'dist'))
         except OSError:
             pass
 
@@ -88,7 +89,7 @@ setup(
     version=re.sub(r'[^\d\.]', '', VERSION),
     packages=find_packages(exclude=['tests', 'cover']),
     description=DESCRIPTION,
-    long_description=long_description,
+    long_description=LONG_DESCRIPTION,
     author=', '.join(AUTHORS.values()),
     author_email=', '.join(AUTHORS.keys()),
     install_requires=REQUIRED,
