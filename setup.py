@@ -13,13 +13,12 @@ from shutil import rmtree
 
 from setuptools import find_packages, setup, Command
 
-from ecs import version
+from ecs import VERSION
 
 # Package meta-data.
 NAME = 'ecs-tools'
 DESCRIPTION = 'Command line tools to interact with your ECS clusters. '
 URL = 'https://github.com/flou/ecs-tools'
-VERSION = version
 AUTHORS = {
     'ferrand@ekino.com': 'Lou Ferrand',
 }
